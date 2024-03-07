@@ -1,10 +1,14 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Timer;
-
+import com.ctre.phoenix.motorcontrol.ControlMode;
+// import com.ctre.phoenix.motorcontrol.TalonSRXSimCollection;
+// import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+// import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Servo;
 
 public class Robot extends TimedRobot {
@@ -24,12 +28,16 @@ public class Robot extends TimedRobot {
     private final int rightMotor1Port = 4;
     private final int rightMotor2Port = 5;
     private final int neckMotorPort = 6;
+    private final int servoPort =7;
 
     private final int joystickPort = 0;
 
-    private final int servoPort =7;
-
     private final Timer m_timer = new Timer();
+
+    TalonSRX talonSRX = new TalonSRX(1);
+    TalonSRX rightArmMotor = new TalonSRX(2);
+    TalonSRX leftArmMotor = new TalonSRX(3);
+
 
     @Override
     public void robotInit() {
@@ -40,10 +48,22 @@ public class Robot extends TimedRobot {
         neoMotor1 = new PWMSparkMax(neoMotor1Port);
         neoMotor2 = new PWMSparkMax(neoMotor2Port);
         neckMotor = new PWMSparkMax(neckMotorPort);
+        myServo = new Servo(servoPort);
 
         joystick = new Joystick(joystickPort);
 
-        myServo = new Servo(servoPort);
+
+
+        // // エンコーダーをフィードバックデバイスとして設定
+        // talonSRX.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
+
+        // // エンコーダーのリセット
+        // talonSRX.setSelectedSensorPosition(0, 0, 10);
+
+        // // PID制御パラメータの設定（実際の値は調整が必要）
+        // talonSRX.config_kP(0, 0.1, 10);
+        // talonSRX.config_kI(0, 0.0, 10);
+        // talonSRX.config_kD(0, 0.0, 10);
     }
 
     /** This function is run once each time the robot enters autonomous mode. */
@@ -71,50 +91,72 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         if (joystick.getRawButton(5)) {
+
+            // 目標位置（角度）を設定。この値はテストに基づいて調整する必要がある。
+            // 例: 1000単位 = X度（エンコーダーの解像度に依存）
+            // int targetPosition = 1000; // 目標位置（この値は例としています）
+            
+            // 目標位置にモーターを移動
+            // talonSRX.set(ControlMode.Position, targetPosition);
+
+            // デバッグ情報をSmartDashboardに表示
+            // SmartDashboard.putNumber("Currents Position", talonSRX.getSelectedSensorPosition(0));
+            // SmartDashboard.putNumber("Target Position", targetPosition);
+
+
             // Joystickのボタン2が押されたとき
             neoMotor1.set(1); // NEOモーター1を50%の速度で回転
             // System.out.println("motor111");
             neoMotor2.set(-1); // NEOモーター2を50%の速度で回転
             // System.out.println("motor222");
         } else {
-            // ボタンが離されたとき
+            // talonSRX.set(ControlMode.Position, 0);
             neoMotor1.set(0); // NEOモーター1を停止
             neoMotor2.set(0); // NEOモーター2を停止
         }
 
+
+        // talonSRX
+        if (joystick.getRawButton(5)) {
+            talonSRX.set(ControlMode.PercentOutput, 0.5);
+        } else if (joystick.getRawButton(6)) {
+            talonSRX.set(ControlMode.PercentOutput, -0.5);
+        } else {
+            talonSRX.set(ControlMode.PercentOutput, 0);
+        }
+
+        // myServo
         if (joystick.getRawButton(6)) {
             myServo.set(0.5); 
         } else {
-            myServo.set(0.0);
+            myServo.set(0);
         }
 
+        // ArmMotor
         if (joystick.getRawButton(4)) {
             neckMotor.set(0.1);
-        } else if (joystick.getRawButton(3)) {
+            rightArmMotor.set(ControlMode.PercentOutput, 0.5);
+            leftArmMotor.set(ControlMode.PercentOutput, -0.5);
+        } else if (joystick.getRawButton(1)) {
             neckMotor.set(-0.1);
+            rightArmMotor.set(ControlMode.PercentOutput, -0.5);
+            leftArmMotor.set(ControlMode.PercentOutput, 0.5);
+        } else {
+            rightArmMotor.set(ControlMode.PercentOutput, 0);
+            leftArmMotor.set(ControlMode.PercentOutput, 0);
         }
         
-        double left = -1 * joystick.getRawAxis(1);                                                                                                                                                                                                                                                                                                                                                                                                            
+        // driveBase set value
+        double left = -1 * joystick.getRawAxis(1);          
         double right = joystick.getRawAxis(5); // ジョイスティックのY軸
-
-        if (joystick.getRawButton(7)) {
-        leftMotor1.set(0);
-        leftMotor2.set(0);
-        rightMotor1.set(0);
-        rightMotor2.set(0);
-        }
-
-        // モーターの速度と方向の計算
         double rightSpeed = right;
         double leftSpeed = left;
 
-        // モーターを制御
+        // driveBase
         leftMotor1.set(limitSpeed(rightSpeed));
         leftMotor2.set(limitSpeed(rightSpeed));
         rightMotor1.set(limitSpeed(leftSpeed));
         rightMotor2.set(limitSpeed(leftSpeed));
-
-        // m_robotDrive.set(-joystick.getY(), -joystick.getY(), -joystick.getX(), -joystick.getX());
     }
 
     private double limitSpeed(double speed) {
