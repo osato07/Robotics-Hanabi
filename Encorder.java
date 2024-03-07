@@ -1,47 +1,23 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018 FIRST. All Rights Reserved.                             */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
-/**
- * This example shows how to use an Encoder in an FRC program.
- *
-**/
-package frc.robot;
-
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Encoder;
-
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
 
 public class Robot extends TimedRobot {
-  /**
-   * This function is run when the robot is first started up and should be used
-   * for any initialization code.
-   */
-  Encoder enc;
-  
-  //private static final double cpr = 7/4; //if am-2861a
-  // private static final double cpr = 360; //if am-3132
-  // private static final double cpr = 5; //if am-3314a
-  private static final double cpr = 1024; //if am-3445
-  // private static final double cpr = 64; //if am-4027
+    private WPI_TalonSRX talon = new WPI_TalonSRX(1); // ID 1のTalon SRX
+    private Joystick joystick = new Joystick(0); // ポート0に接続されたジョイスティック
+    private JoystickButton button1 = new JoystickButton(joystick, 1); // ボタン1
+    private JoystickButton button2 = new JoystickButton(joystick, 2); // ボタン2
 
-  private static final double whd = 6; // for 6 inch wheel
+    private final double degreesToEncoderUnits = 4096 * 100 / 360.0; // 1度あたりのエンコーダー単位
 
-
-  @Override
-  public void robotInit() {
-    enc = new Encoder(0,1);
-    enc.setDistancePerPulse(Math.PI*whd/cpr); //distance per pulse is pi* (wheel diameter / counts per revolution)
-  }
-
-  @Override
-  public void robotPeriodic()
-  {
-    double dist = enc.getDistance();
-    SmartDashboard.putNumber("Encoder", dist);
-  }
+    @Override
+    public void teleopPeriodic() {
+        if (button1.get()) {
+            talon.set(ControlMode.Position, 30 * degreesToEncoderUnits); // 30度の位置に移動
+        } else if (button2.get()) {
+            talon.set(ControlMode.Position, 120 * degreesToEncoderUnits); // 120度の位置に移動
+        }
+    }
 }
