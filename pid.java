@@ -1,3 +1,5 @@
+package frc.wpilib;
+
 import edu.wpi.first.wpilibj.PIDController;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 // Import other necessary classes
