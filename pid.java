@@ -15,18 +15,14 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {        
         encoder.reset();
-        errorSum = 0;
         lastError = 0;
         lastTimeStamp = Timer.getFPGATimeStamp();
     }
 
     final double kP = 0.0007; 
-    final double kI = 0.0007;
     final double kD = 0.01;
-    final double iLimit = 1;
 
     double setpoint = 0;
-    double errorSum = 0;
     double lastTimeStamp = 0;
     double lastError = 0;
 
