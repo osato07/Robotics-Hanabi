@@ -28,6 +28,15 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
+        // ひとまず、dashboardだけで、正確な値の方に encoder.get or encoder.getDistanceやってから追加
+        SmartDashboard.putNumber("Encoder getDistance", encoder.getDistance());
+        SmartDashboard.putNumber("Encoder get", encoder.get());
+
+        // pid cotrole by PID class, it is so easy yeah but "easy" are followed by "complex"
+        // PIDController pid = new PIDController(kP, kI, kD);
+        // motor.set(pid.calculate(encoder.getDistance(), setpoint));
+        
+        
         if (joystick.getRawButton(9)) {
             setpoint = 0;   
         } else if (joystick.getRawButton(10)) {
@@ -50,9 +59,7 @@ public class Robot extends TimedRobot {
         TalonSRX.set(Position, outputSpeed);
         
         lastTimeStamp = Timer.getFPGATimeStamp();
-
         SmartDashboard.putNumber("encoder value", encoder.get() * kDriveTick2Feet);
-
         lastError = error;
     }
 
