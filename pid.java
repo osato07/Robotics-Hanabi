@@ -2,13 +2,13 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.PIDController;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-// Import other necessary classes
-
+import edu.wpi.first.wpilibj.Encoder;
+    
 public class Robot extends TimedRobot {
     private PIDController pid;
     private Joystick joystick = new Joystick(0);
     private TalonSRX TalonSRX = new TalonSRX(1);
-    private Encoder encoder(0, 1, true, EncodingType.k4X);
+    private Encoder encoder = new Encoder(0, 1, true, EncodingType.k4X);
 
     private final double kDriveTick2Feet = 1.0 / 128 * 6 * Math.PI / 12;
 
@@ -48,25 +48,26 @@ public class Robot extends TimedRobot {
         if (joystick.getRawButton(9)) {
             setpoint = 0;   
         } else if (joystick.getRawButton(10)) {
-            setpoint = 300
+            setpoint = 300;
+            // 目標角度のことを指してるけど、うまくできてるかはわからん
         }
 
         double sensorPosition = encoder.get() * kDriveTick2Feet;
 
         double error = setpoint - sensorPosition;
-        double dt = Timer.get() - lastTimeStamp;
+        double dt = m_timer.get() - lastTimeStamp;
         if (Math.abs(error) < iLimit) {
             errorSum += error * dt;
         }
 
         double errorRate = (error - lastError) / dt;
 
-        double outputSpeed = kP * error + kI * errorSum + kD * errorRate;
+        double outputSpeed = kP * error + kD * errorRate;
+        SmartDashboard.putNumber("output ", outputSpeed);
         
-
-        TalonSRX.set(Position, outputSpeed);
+        // TalonSRX.set(ControlMode.Position, outputSpeed);
         
-        lastTimeStamp = Timer.get();
+        lastTimeStamp = m_timer.get();
         SmartDashboard.putNumber("encoder value", encoder.get() * kDriveTick2Feet);
         lastError = error;
     }
