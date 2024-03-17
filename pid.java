@@ -18,7 +18,8 @@ public class Robot extends TimedRobot {
     private TalonSRX talonSRX = new TalonSRX(1);
     private Encoder encoder = new Encoder(0, 1, true, EncodingType.k4X);
 
-    private final double kDriveTick2Feet = 1.0 / 128 * 6 * Math.PI / 12;
+    private final double kDriveTick2Feet = 1.0 / 4096 * 6 * Math.PI / 12;
+    // 6という数字について: ホイールの直径（この例では6インチ）とπを掛け合わせて、ホイールの円周をインチで計算します。ホイールが1回転すると、ロボットはこの距離だけ進むことになります。
 
     private final Timer m_timer = new Timer();
 
