@@ -1,31 +1,17 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Timer;
-// import java.util.Optional;
-import com.ctre.phoenix.motorcontrol.ControlMode;
-// import com.ctre.phoenix.motorcontrol.TalonSRXSimCollection;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-// import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import edu.wpi.first.wpilibj.TimedRobot;
-// import edu.wpi.first.wpilibj.DriverStation;
-// import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Servo;
+// the import section is omitted...
 
 public class Robot extends TimedRobot {
-    private static final String kDefaultAuto = "Default";
-    private static final String kCustomAuto = "My Auto";
+    private static final String kDefaultAuto = "leftSide";
+    private static final String kCustomAuto = "rightSide";
     private String m_autoSelected;
     private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
     @Override
     public void robotInit() {
-        m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-        m_chooser.addOption("My Auto", kCustomAuto);
+        m_chooser.setDefaultOption("Left Auto", kDefaultAuto);
+        m_chooser.addOption("Right Auto", kCustomAuto);
         SmartDashboard.putData("Auto choices", m_chooser);
     }
 
