@@ -12,13 +12,20 @@ public class Robot extends TimedRobot {
 
     private final double kDriveTick2Feet = 1.0 / 128 * 6 * Math.PI / 12;
 
+    private final Timer m_timer = new Timer();
+
     @Override
     public void robotInit() {        
         encoder.reset();
         lastError = 0;
         lastTimeStamp = Timer.getFPGATimeStamp();
+        
     }
 
+    public void teleopInit() {
+        m_timer.set();
+    }
+ 
     final double kP = 0.0007; 
     final double kD = 0.01;
 
