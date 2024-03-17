@@ -1,9 +1,15 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PIDController;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Timer;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import edu.wpi.first.wpilibj.PIDController;
+// EncoderのEncodingTypeを使用する場合、以下のインポートも必要になります。
+import edu.wpi.first.wpilibj.Encoder.EncodingType;
+
 
     
 public class Robot extends TimedRobot {
@@ -73,7 +79,7 @@ public class Robot extends TimedRobot {
         double outputSpeed = kP * error + kD * errorRate;
         SmartDashboard.putNumber("output ", outputSpeed);
         
-        // talonSRX.set(ControlMode.Position, outputSpeed);
+        // talonSRX.set(, outputSpeed);
         
         lastTimeStamp = m_timer.get();
         SmartDashboard.putNumber("encoder value", encoder.get() * kDriveTick2Feet);
