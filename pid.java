@@ -18,12 +18,13 @@ public class Robot extends TimedRobot {
     public void robotInit() {        
         encoder.reset();
         lastError = 0;
-        lastTimeStamp = Timer.getFPGATimeStamp();
+        lastTimeStamp = Timer.get();
         
     }
 
-    public void teleopInit() {
-        m_timer.set();
+    @Override
+    public void autonomousInit() {
+        m_timer.restart();
     }
  
     final double kP = 0.0007; 
