@@ -19,8 +19,7 @@ public class Robot extends TimedRobot {
         // コードがデプロイされた、本当に最初の時に実行される
         encoder.reset();
         lastError = 0;
-        lastTimeStamp = Timer.get();
-        
+        lastTimeStamp = 0;
     }
 
     @Override
@@ -55,7 +54,7 @@ public class Robot extends TimedRobot {
         double sensorPosition = encoder.get() * kDriveTick2Feet;
 
         double error = setpoint - sensorPosition;
-        double dt = Timer.getFPGATimeStamp() - lastTimeStamp;
+        double dt = Timer.get() - lastTimeStamp;
         if (Math.abs(error) < iLimit) {
             errorSum += error * dt;
         }
@@ -67,7 +66,7 @@ public class Robot extends TimedRobot {
 
         TalonSRX.set(Position, outputSpeed);
         
-        lastTimeStamp = Timer.getFPGATimeStamp();
+        lastTimeStamp = Timer.get();
         SmartDashboard.putNumber("encoder value", encoder.get() * kDriveTick2Feet);
         lastError = error;
     }
