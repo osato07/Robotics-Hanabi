@@ -58,9 +58,6 @@ public class Robot extends TimedRobot {
 
         double error = setpoint - sensorPosition;
         double dt = m_timer.get() - lastTimeStamp;
-        if (Math.abs(error) < iLimit) {
-            errorSum += error * dt;
-        }
 
         double errorRate = (error - lastError) / dt;
 
