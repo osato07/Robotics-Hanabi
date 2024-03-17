@@ -16,6 +16,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {        
+        // コードがデプロイされた、本当に最初の時に実行される
         encoder.reset();
         lastError = 0;
         lastTimeStamp = Timer.get();
