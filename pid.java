@@ -83,7 +83,8 @@ public class Robot extends TimedRobot {
         // talonSRX.set(ControlMode.PercentOutput, outputSpeed);
 
         SmartDashboard.putNumber("encoder value", encoder.get() * kDriveTick2Feet);
-        
+
+        // update last data
         lastTimeStamp = m_timer.get();
         lastError = error;
     }
