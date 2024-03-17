@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.Timer;
 public class Robot extends TimedRobot {
     private PIDController pid;
     private Joystick joystick = new Joystick(0);
-    private TalonSRX TalonSRX = new TalonSRX(1);
+    private TalonSRX talonSRX = new TalonSRX(1);
     private Encoder encoder = new Encoder(0, 1, true, EncodingType.k4X);
 
     private final double kDriveTick2Feet = 1.0 / 128 * 6 * Math.PI / 12;
@@ -64,7 +64,7 @@ public class Robot extends TimedRobot {
         double outputSpeed = kP * error + kD * errorRate;
         SmartDashboard.putNumber("output ", outputSpeed);
         
-        // TalonSRX.set(ControlMode.Position, outputSpeed);
+        // talonSRX.set(ControlMode.Position, outputSpeed);
         
         lastTimeStamp = m_timer.get();
         SmartDashboard.putNumber("encoder value", encoder.get() * kDriveTick2Feet);
