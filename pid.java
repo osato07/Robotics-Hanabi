@@ -26,7 +26,14 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        m_timer.restart();
+        m_timer.reset();
+        m_timer.start();
+    }
+    
+    @Override
+    public void teleopPeriodic() {
+        m_timer.reset();
+        m_timer.start();
     }
  
     final double kP = 0.0007; 
@@ -35,6 +42,8 @@ public class Robot extends TimedRobot {
     double setpoint = 0;
     double lastTimeStamp = 0;
     double lastError = 0;
+
+    
 
     @Override
     public void teleopPeriodic() {
