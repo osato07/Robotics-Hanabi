@@ -15,9 +15,6 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
 
-
-
-
 public class Robot extends TimedRobot {
     private PWMSparkMax leftMotor1, leftMotor2, rightMotor1, rightMotor2;
     private PWMSparkMax rightNeoMotor, leftNeoMotor;
