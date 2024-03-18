@@ -60,17 +60,6 @@ public class Robot extends TimedRobot {
         myServo = new Servo(servoPort);
         joystick = new Joystick(joystickPort);
 
-        // // エンコーダーをフィードバックデバイスとして設定
-        talonSRX.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
-
-        // // エンコーダーのリセット
-        talonSRX.setSelectedSensorPosition(0, 0, 10);
-
-        // // PID制御パラメータの設定（実際の値は調整が必要）
-        talonSRX.config_kP(0, 0.1, 10);
-        talonSRX.config_kI(0, 0.0, 10);
-        talonSRX.config_kD(0, 0.0, 10);
-
         // Creates UsbCamera and MjpegServer [1] and connects them
         CameraServer.startAutomaticCapture();
 
