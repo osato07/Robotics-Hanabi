@@ -41,8 +41,6 @@ public class Robot extends TimedRobot {
     // private int lastTargetPosition = 0;
     
     private double shootSpeed = 0.3;
-    private double autonomousSpeed = 0;
-
 
     private final double kDriveTick2Feet = 1.0 / 4096 * 6 * Math.PI / 12;
     // kDriveTick2Feet が、距離を測るための変数で、エンコーダーのギア数とか色々計算してくれてる
@@ -90,56 +88,48 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousPeriodic() {
         switch (m_autoSelected) {
-          case kLeftAuto:
-            if (m_timer.get() < 2.0) {
-                // Drive forwards half speed, make sure to turn input squaring off
-                autonomousSpeed = 0.1;
-                leftMotor1.set(limitSpeed(autonomousSpeed));
-                leftMotor2.set(limitSpeed(autonomousSpeed));
-                rightMotor1.set(limitSpeed(autonomousSpeed));
-                rightMotor2.set(limitSpeed(autonomousSpeed));
-            } else if (m_timer.get() >= 2.0 && m_timer.get() < 4.0) {
-                autonomousSpeed = -0.3;
-                leftMotor1.set(limitSpeed(autonomousSpeed));
-                leftMotor2.set(limitSpeed(autonomousSpeed));
-                rightMotor1.set(limitSpeed(autonomousSpeed));
-                rightMotor2.set(limitSpeed(autonomousSpeed));        
-            } else {
-                autonomousSpeed = 0;
-                leftMotor1.set(limitSpeed(0));
-                leftMotor2.set(limitSpeed(0));
-                rightMotor1.set(limitSpeed(0));
-                rightMotor2.set(limitSpeed(0));   
-            }
-            new WaitCommand(5.0);
-            
-            break;
+            case kLeftAuto:
+                new WaitCommand(1.0);
+                myServo.set(0.22);
+                if (m_timer.get() < 4.5) {
+                    rightNeoMotor.set(-2);
+                    leftNeoMotor.set(2);
+                    if(m_timer.get() > 2.0 && m_timer.get() < 4.5) {
+                        myServo.set(0.48);
+                    }
+                } else if (m_timer.get() >= 4.5 && m_timer.get() < 10.0) {
+                    rightNeoMotor.set(0);
+                    leftNeoMotor.set(0);
+                    myServo.set(0.22);
+                    leftMotor1.set(limitSpeed(-0.4));
+                    leftMotor2.set(limitSpeed(-0.4));
+                    rightMotor1.set(limitSpeed(-0.5));
+                    rightMotor2.set(limitSpeed(-0.5));
+                }
+                new WaitCommand(1.0);
+                break;
                 
-          case kRightAuto:
-          default:
-            if (m_timer.get() < 2.0) {
-                // Drive forwards half speed, make sure to turn input squaring off
-                autonomousSpeed = 0.1;
-                leftMotor1.set(limitSpeed(autonomousSpeed));
-                leftMotor2.set(limitSpeed(autonomousSpeed));
-                rightMotor1.set(limitSpeed(autonomousSpeed));
-                rightMotor2.set(limitSpeed(autonomousSpeed));
-            } else if (m_timer.get() >= 2.0 && m_timer.get() < 4.0) {
-                autonomousSpeed = -0.3;
-                leftMotor1.set(limitSpeed(autonomousSpeed));
-                leftMotor2.set(limitSpeed(autonomousSpeed));
-                rightMotor1.set(limitSpeed(autonomousSpeed));
-                rightMotor2.set(limitSpeed(autonomousSpeed));        
-            } else {
-                autonomousSpeed = 0;
-                leftMotor1.set(limitSpeed(0));
-                leftMotor2.set(limitSpeed(0));
-                rightMotor1.set(limitSpeed(0));
-                rightMotor2.set(limitSpeed(0));   
-            }
-            new WaitCommand(5.0);
-            
-            break;
+            case kRightAuto:
+            default:
+                new WaitCommand(1.0);
+                myServo.set(0.22);
+                if (m_timer.get() < 4.5) {
+                    rightNeoMotor.set(-2);
+                    leftNeoMotor.set(2);
+                    if(m_timer.get() > 2.0 && m_timer.get() < 4.5) {
+                        myServo.set(0.48);
+                    }
+                } else if (m_timer.get() >= 4.5 && m_timer.get() < 10.0) {
+                    rightNeoMotor.set(0);
+                    leftNeoMotor.set(0);
+                    myServo.set(0.22);
+                    leftMotor1.set(limitSpeed(-0.5));
+                    leftMotor2.set(limitSpeed(-0.5));
+                    rightMotor1.set(limitSpeed(-0.3));
+                    rightMotor2.set(limitSpeed(-0.3));
+                }
+                new WaitCommand(1.0);
+                break;
         }
     }
 
@@ -156,7 +146,6 @@ public class Robot extends TimedRobot {
     double setpoint = 0; // 目標距離の変数
     double lastTimeStamp = 0; // 最新の時間
     double lastError = 0; // 最新のerror（目標までの距離）
-
 
     @Override
     public void teleopPeriodic() { 
@@ -201,19 +190,13 @@ public class Robot extends TimedRobot {
         }
 
         // 315 add feedback device 
-        if (key10) {
-            double feedforward = -0.1;
-            int targetPos = 636;
-            talonSRX.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, feedforward);
-        } else if (key9) {
-            double feedforward = 0.1;
-            int targetPos = 1600;
-            talonSRX.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, feedforward);
-        } else {
-            talonSRX.set(ControlMode.PercentOutput, 0);
-        }
-
-
+        // if (key10) {
+        //     talonSRX.set(ControlMode.Position, 3000);
+        // } else if (key9) {
+        //     talonSRX.set(ControlMode.Position, 0);
+        // } else {
+        //     talonSRX.set(ControlMode.Position, 1000);
+        // }
 
         SmartDashboard.putNumber("Encoder Position", talonSRX.getSelectedSensorPosition());
         SmartDashboard.putNumber("Target Position", lastTargetPosition);
