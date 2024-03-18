@@ -26,6 +26,8 @@ public class Robot extends TimedRobot {
     TalonSRX talonSRX = new TalonSRX(1);
     TalonSRX rightArmMotor = new TalonSRX(2);
     TalonSRX leftArmMotor = new TalonSRX(3);
+
+    private Encoder encoder = new Encoder(0, 1, true, EncodingType.k4X); // encoderの読み取り速度？質？を4倍にする
    
     // ポート番号
     private final int rightNeoMotorPort = 0;
@@ -39,11 +41,11 @@ public class Robot extends TimedRobot {
 
     private final Timer m_timer = new Timer();
 
-    private int lastTargetPosition = 0;
+    // private int lastTargetPosition = 0;
+    
     private double shootSpeed = 0.3;
     private double autonomousSpeed = 0;
 
-    private Encoder encoder = new Encoder(0, 1, true, EncodingType.k4X); // encoderの読み取り速度？質？を4倍にする
 
     private final double kDriveTick2Feet = 1.0 / 4096 * 6 * Math.PI / 12;
     // kDriveTick2Feet が、距離を測るための変数で、エンコーダーのギア数とか色々計算してくれてる
