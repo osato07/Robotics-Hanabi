@@ -2,18 +2,17 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Timer;
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.DemandType;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.CounterBase.EncodingType;
-import edu.wpi.first.wpilibj.Encoder;
+
 
 public class Robot extends TimedRobot {
     private PWMSparkMax leftMotor1, leftMotor2, rightMotor1, rightMotor2;
@@ -24,7 +23,6 @@ public class Robot extends TimedRobot {
     TalonSRX rightArmMotor = new TalonSRX(2);
     TalonSRX leftArmMotor = new TalonSRX(3);
 
-    private Encoder encoder = new Encoder(0, 1, true, EncodingType.k4X); // encoderの読み取り速度？質？を4倍にする
    
     // ポート番号
     private final int rightNeoMotorPort = 0;
@@ -39,14 +37,14 @@ public class Robot extends TimedRobot {
     private final Timer m_timer = new Timer();
 
     // private int lastTargetPosition = 0;
-    
+   
     private double shootSpeed = 0.3;
 
     private final double kDriveTick2Feet = 1.0 / 4096 * 6 * Math.PI / 12;
     // kDriveTick2Feet が、距離を測るための変数で、エンコーダーのギア数とか色々計算してくれてる
     // 6という数字について: ホイールの直径（この例では6インチ）とπを掛け合わせて、ホイールの円周をインチで計算します。ホイールが1回転すると、ロボットはこの距離だけ進むことになります。
 
-    private static final String kLeftAutp = "leftSide";
+    private static final String kLeftAuto = "leftSide";
     private static final String kRightAuto = "rightSide";
     private String m_autoSelected;
     private final SendableChooser<String> m_chooser = new SendableChooser<>();
@@ -62,10 +60,12 @@ public class Robot extends TimedRobot {
         myServo = new Servo(servoPort);
         joystick = new Joystick(joystickPort);
 
+        talonSRX.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
+        talonSRX.setSelectedSensorPosition(0, 0, 10);
+
         // Creates UsbCamera and MjpegServer [1] and connects them
         CameraServer.startAutomaticCapture();
 
-        encoder.reset();
         lastError = 0;
         lastTimeStamp = 0;
 
@@ -108,7 +108,7 @@ public class Robot extends TimedRobot {
                 }
                 new WaitCommand(1.0);
                 break;
-                
+               
             case kRightAuto:
             default:
                 new WaitCommand(1.0);
@@ -139,17 +139,17 @@ public class Robot extends TimedRobot {
         m_timer.start();
     }
 
-    
-    final double kP = 0.0007;
-    final double kD = 0.01;
-
-    double setpoint = 0; // 目標距離の変数
-    double lastTimeStamp = 0; // 最新の時間
-    double lastError = 0; // 最新のerror（目標までの距離）
+   
+    // クラス内のグローバル変数として定義
+    double kP = 3; // Pゲイン
+    double kD = 0.55; // Dゲイン
+    double setpoint = -0.2; // 目標位置
+    double lastError = 0; // 前回の偏差
+    double lastTimeStamp = 0; // 前回のタイムスタンプ
 
     @Override
-    public void teleopPeriodic() { 
-        
+    public void teleopPeriodic() {
+       
         boolean key1 = joystick.getRawButton(1);
         // boolean key2 = joystick.getRawButton(2);
         // boolean key3 = joystick.getRawButton(3);
@@ -189,19 +189,6 @@ public class Robot extends TimedRobot {
             shootSpeed = 2;
         }
 
-        // 315 add feedback device 
-        // if (key10) {
-        //     talonSRX.set(ControlMode.Position, 3000);
-        // } else if (key9) {
-        //     talonSRX.set(ControlMode.Position, 0);
-        // } else {
-        //     talonSRX.set(ControlMode.Position, 1000);
-        // }
-
-        SmartDashboard.putNumber("Encoder Position", talonSRX.getSelectedSensorPosition());
-        SmartDashboard.putNumber("Target Position", lastTargetPosition);
-
-
         //ArmMotor
         if (key4) {
             rightArmMotor.set(ControlMode.PercentOutput, 1);
@@ -213,51 +200,56 @@ public class Robot extends TimedRobot {
             rightArmMotor.set(ControlMode.PercentOutput, 0);
             leftArmMotor.set(ControlMode.PercentOutput, 0);
         }
-        
+       
         // move driveBase
         double left = -1 * joystick.getRawAxis(1);          
         double right = joystick.getRawAxis(5); // ジョイスティックのY軸
         double rightSpeed = right;
         double leftSpeed = left;
-        SmartDashboard.putNumber("right Position", rightSpeed);
-        SmartDashboard.putNumber("left Position", leftSpeed);
         leftMotor1.set(limitSpeed(rightSpeed));
         leftMotor2.set(limitSpeed(rightSpeed));
         rightMotor1.set(limitSpeed(leftSpeed));
         rightMotor2.set(limitSpeed(leftSpeed));
 
-
-
-        // ひとまず、dashboardだけで、正確な値の方に encoder.get or encoder.getDistanceやってから追加
-        SmartDashboard.putNumber("Encoder getDistance", encoder.getDistance());
-        SmartDashboard.putNumber("Encoder get", encoder.get());
-        
+       
         // ボタンによって目標位置を変える
-        if (joystick.getRawButton(9)) {
-            setpoint = 0;  
-        } else if (joystick.getRawButton(10)) {
-            setpoint = 300;
+        if (key9) {
+            setpoint = -0.2;  
+        } else if (key10) {
+            setpoint = -0.35;
         }
-        
-        double sensorPosition = encoder.get() * kDriveTick2Feet;
-        
-        double error = setpoint - sensorPosition; // 目標までの距離
-        double dt = m_timer.get() - lastTimeStamp;
 
-        double errorRate = (error - lastError) / dt;
+        // teleopPeriodic内や任意の周期的に呼び出されるメソッド内
+        double sensorPosition = talonSRX.getSelectedSensorPosition() * kDriveTick2Feet; // 現在位置の読み取り
+        double error = setpoint - sensorPosition; // 偏差の計算
 
-        // outputSpeed そのまま
+        // 現在の時間を取得し、前回からの経過時間を計算
+        double currentTime = m_timer.get();
+        double dt = currentTime - lastTimeStamp;
+
+        // 変化率（D成分）の計算
+        double errorRate = dt > 0 ? (error - lastError) / dt : 0;
+
+        // 出力の計算
         double outputSpeed = kP * error + kD * errorRate;
-        SmartDashboard.putNumber("output ", outputSpeed);
-        
-        // テストの時までコメントアウトする、モーターを動かすコード
-        // talonSRX.set(ControlMode.PercentOutput, outputSpeed);
 
-        SmartDashboard.putNumber("encoder value", encoder.get() * kDriveTick2Feet);
+        // モーター出力の制限 (-1.0 から 1.0 の範囲内)
+        outputSpeed = Math.max(-1.0, Math.min(outputSpeed, 1.0));
 
-        // update last data
-        lastTimeStamp = m_timer.get();
+        // モーターを動かす
+        talonSRX.set(ControlMode.PercentOutput, outputSpeed);
+
+        // スマートダッシュボードへの値の表示（デバッグ用）
+        SmartDashboard.putNumber("Output Speed", outputSpeed);
+        SmartDashboard.putNumber("Encoder Value", sensorPosition);
+        SmartDashboard.putNumber("set Point", setpoint);
+        SmartDashboard.putNumber(" Error", error);
+        SmartDashboard.putNumber("errorRate", errorRate);
+        SmartDashboard.putNumber("dt", dt);
+
+        // 前回の値の更新
         lastError = error;
+        lastTimeStamp = currentTime;
     }
 
     private double limitSpeed(double speed) {
@@ -271,6 +263,6 @@ public class Robot extends TimedRobot {
     /** This function is called periodically during test mode. */
     @Override
     public void testPeriodic() {
-        
+       
     }
 }
