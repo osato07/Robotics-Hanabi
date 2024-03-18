@@ -24,7 +24,7 @@ public class Robot extends TimedRobot {
     TalonSRX talonSRX = new TalonSRX(1);
    
     // ポート番号
-    private final int rightNeoMotorPort = 7;
+    private final int rightNeoMotorPort = 0;
     private final int leftNeoMotorPort = 8;
     private final int leftMotor1Port = 2;
     private final int leftMotor2Port = 3;
