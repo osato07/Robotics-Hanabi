@@ -48,6 +48,11 @@ public class Robot extends TimedRobot {
     // kDriveTick2Feet が、距離を測るための変数で、エンコーダーのギア数とか色々計算してくれてる
     // 6という数字について: ホイールの直径（この例では6インチ）とπを掛け合わせて、ホイールの円周をインチで計算します。ホイールが1回転すると、ロボットはこの距離だけ進むことになります。
 
+    private static final String kLeftAutp = "leftSide";
+    private static final String kRightAuto = "rightSide";
+    private String m_autoSelected;
+    private final SendableChooser<String> m_chooser = new SendableChooser<>();
+
     @Override
     public void robotInit() {
         rightNeoMotor = new PWMSparkMax(rightNeoMotorPort);
@@ -62,15 +67,21 @@ public class Robot extends TimedRobot {
         // Creates UsbCamera and MjpegServer [1] and connects them
         CameraServer.startAutomaticCapture();
 
-        // コードがデプロイされた、本当に最初の時に実行される
         encoder.reset();
         lastError = 0;
         lastTimeStamp = 0;
+
+        m_chooser.setDefaultOption("Left Auto", kLeftAuto);
+        m_chooser.addOption("Right Auto", kRightAuto);
+        SmartDashboard.putData("Auto choices", m_chooser);
     }
 
     /** This function is run once each time the robot enters autonomous mode. */
     @Override
     public void autonomousInit() {
+        m_autoSelected = m_chooser.getSelected();
+        System.out.println("Auto selected: " + m_autoSelected);
+
         m_timer.reset();
         m_timer.start();
     }
@@ -78,28 +89,58 @@ public class Robot extends TimedRobot {
     /** This function is called periodically during autonomous. */
     @Override
     public void autonomousPeriodic() {
-        // Drive for 2 seconds
-        if (m_timer.get() < 2.0) {
-            // Drive forwards half speed, make sure to turn input squaring off
-            autonomousSpeed = 0.1;
-            leftMotor1.set(limitSpeed(autonomousSpeed));
-            leftMotor2.set(limitSpeed(autonomousSpeed));
-            rightMotor1.set(limitSpeed(autonomousSpeed));
-            rightMotor2.set(limitSpeed(autonomousSpeed));
-        } else if (m_timer.get() >= 2.0 && m_timer.get() < 4.0) {
-            autonomousSpeed = -0.3;
-            leftMotor1.set(limitSpeed(autonomousSpeed));
-            leftMotor2.set(limitSpeed(autonomousSpeed));
-            rightMotor1.set(limitSpeed(autonomousSpeed));
-            rightMotor2.set(limitSpeed(autonomousSpeed));        
-        } else {
-            autonomousSpeed = 0;
-            leftMotor1.set(limitSpeed(0));
-            leftMotor2.set(limitSpeed(0));
-            rightMotor1.set(limitSpeed(0));
-            rightMotor2.set(limitSpeed(0));   
+        switch (m_autoSelected) {
+          case kLeftAuto:
+            if (m_timer.get() < 2.0) {
+                // Drive forwards half speed, make sure to turn input squaring off
+                autonomousSpeed = 0.1;
+                leftMotor1.set(limitSpeed(autonomousSpeed));
+                leftMotor2.set(limitSpeed(autonomousSpeed));
+                rightMotor1.set(limitSpeed(autonomousSpeed));
+                rightMotor2.set(limitSpeed(autonomousSpeed));
+            } else if (m_timer.get() >= 2.0 && m_timer.get() < 4.0) {
+                autonomousSpeed = -0.3;
+                leftMotor1.set(limitSpeed(autonomousSpeed));
+                leftMotor2.set(limitSpeed(autonomousSpeed));
+                rightMotor1.set(limitSpeed(autonomousSpeed));
+                rightMotor2.set(limitSpeed(autonomousSpeed));        
+            } else {
+                autonomousSpeed = 0;
+                leftMotor1.set(limitSpeed(0));
+                leftMotor2.set(limitSpeed(0));
+                rightMotor1.set(limitSpeed(0));
+                rightMotor2.set(limitSpeed(0));   
+            }
+            new WaitCommand(5.0);
+            
+            break;
+                
+          case kRightAuto:
+          default:
+            if (m_timer.get() < 2.0) {
+                // Drive forwards half speed, make sure to turn input squaring off
+                autonomousSpeed = 0.1;
+                leftMotor1.set(limitSpeed(autonomousSpeed));
+                leftMotor2.set(limitSpeed(autonomousSpeed));
+                rightMotor1.set(limitSpeed(autonomousSpeed));
+                rightMotor2.set(limitSpeed(autonomousSpeed));
+            } else if (m_timer.get() >= 2.0 && m_timer.get() < 4.0) {
+                autonomousSpeed = -0.3;
+                leftMotor1.set(limitSpeed(autonomousSpeed));
+                leftMotor2.set(limitSpeed(autonomousSpeed));
+                rightMotor1.set(limitSpeed(autonomousSpeed));
+                rightMotor2.set(limitSpeed(autonomousSpeed));        
+            } else {
+                autonomousSpeed = 0;
+                leftMotor1.set(limitSpeed(0));
+                leftMotor2.set(limitSpeed(0));
+                rightMotor1.set(limitSpeed(0));
+                rightMotor2.set(limitSpeed(0));   
+            }
+            new WaitCommand(5.0);
+            
+            break;
         }
-        new WaitCommand(5.0);
     }
 
     @Override
