@@ -7,7 +7,6 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.Servo;
@@ -35,8 +34,6 @@ public class Robot extends TimedRobot {
     private final int joystickPort = 0;
 
     private final Timer m_timer = new Timer();
-
-    // private int lastTargetPosition = 0;
    
     private double shootSpeed = 0.3;
 
@@ -66,6 +63,8 @@ public class Robot extends TimedRobot {
         // Creates UsbCamera and MjpegServer [1] and connects them
         CameraServer.startAutomaticCapture();
 
+        myServo.set(0.22);
+
         lastError = 0;
         lastTimeStamp = 0;
 
@@ -77,9 +76,10 @@ public class Robot extends TimedRobot {
     /** This function is run once each time the robot enters autonomous mode. */
     @Override
     public void autonomousInit() {
+        myServo.set(0.22);
+        setpoint = -0.38;
         m_autoSelected = m_chooser.getSelected();
         System.out.println("Auto selected: " + m_autoSelected);
-
         m_timer.reset();
         m_timer.start();
     }
@@ -89,48 +89,91 @@ public class Robot extends TimedRobot {
     public void autonomousPeriodic() {
         switch (m_autoSelected) {
             case kLeftAuto:
-                new WaitCommand(1.0);
-                myServo.set(0.22);
-                if (m_timer.get() < 4.5) {
+                if (m_timer.get() > 3 && m_timer.get() < 5) {
+                    rightNeoMotor.set(-1);
+                    leftNeoMotor.set(1);
+                } else if (m_timer.get() > 4.7) {
                     rightNeoMotor.set(-2);
                     leftNeoMotor.set(2);
-                    if(m_timer.get() > 2.0 && m_timer.get() < 4.5) {
-                        myServo.set(0.48);
-                    }
-                } else if (m_timer.get() >= 4.5 && m_timer.get() < 10.0) {
+                    myServo.set(0.48);
+                } else if (m_timer.get() >= 5 && m_timer.get() < 8) {
+                    setpoint = -0.07;
                     rightNeoMotor.set(0);
                     leftNeoMotor.set(0);
                     myServo.set(0.22);
-                    leftMotor1.set(limitSpeed(-0.4));
-                    leftMotor2.set(limitSpeed(-0.4));
-                    rightMotor1.set(limitSpeed(-0.5));
-                    rightMotor2.set(limitSpeed(-0.5));
+                    leftMotor1.set(limitSpeed(0.7));
+                    leftMotor2.set(limitSpeed(0.7));
+                    rightMotor1.set(limitSpeed(-0.4));
+                    rightMotor2.set(limitSpeed(-0.4));
+                } else if (m_timer.get() >= 8) {
+                    setpoint = -0.07;
+                    rightNeoMotor.set(0);
+                    leftNeoMotor.set(0);
+                    myServo.set(0.22);
+                    leftMotor1.set(limitSpeed(0));
+                    leftMotor2.set(limitSpeed(0));
+                    rightMotor1.set(limitSpeed(0));
+                    rightMotor2.set(limitSpeed(0));
                 }
-                new WaitCommand(1.0);
+                myServo.set(0.22);
                 break;
                
             case kRightAuto:
             default:
-                new WaitCommand(1.0);
-                myServo.set(0.22);
-                if (m_timer.get() < 4.5) {
-                    rightNeoMotor.set(-2);
-                    leftNeoMotor.set(2);
-                    if(m_timer.get() > 2.0 && m_timer.get() < 4.5) {
+                if (m_timer.get() > 1.5 && m_timer.get() < 3.5) {
+                    rightNeoMotor.set(-1);
+                    leftNeoMotor.set(1);
+                    if(m_timer.get() > 3 && m_timer.get() < 4) {
                         myServo.set(0.48);
                     }
-                } else if (m_timer.get() >= 4.5 && m_timer.get() < 10.0) {
+                } else if (m_timer.get() >= 4 && m_timer.get() < 6) {
+                    setpoint = -0.07;
                     rightNeoMotor.set(0);
                     leftNeoMotor.set(0);
                     myServo.set(0.22);
-                    leftMotor1.set(limitSpeed(-0.5));
-                    leftMotor2.set(limitSpeed(-0.5));
-                    rightMotor1.set(limitSpeed(-0.3));
-                    rightMotor2.set(limitSpeed(-0.3));
+                    leftMotor1.set(limitSpeed(0.4));
+                    leftMotor2.set(limitSpeed(0.4));
+                    rightMotor1.set(limitSpeed(-0.6));
+                    rightMotor2.set(limitSpeed(-0.6));
+                } else if (m_timer.get() >= 6) {
+                    setpoint = -0.07;
+                    rightNeoMotor.set(0);
+                    leftNeoMotor.set(0);
+                    myServo.set(0.22);
+                    leftMotor1.set(limitSpeed(0));
+                    leftMotor2.set(limitSpeed(0));
+                    rightMotor1.set(limitSpeed(0));
+                    rightMotor2.set(limitSpeed(0));
                 }
-                new WaitCommand(1.0);
                 break;
         }
+
+        // teleopPeriodic内や任意の周期的に呼び出されるメソッド内
+        double sensorPosition = talonSRX.getSelectedSensorPosition() * kDriveTick2Feet; // 現在位置の読み取り
+        double error = setpoint - sensorPosition; // 偏差の計算
+        // 現在の時間を取得し、前回からの経過時間を計算
+        double currentTime = m_timer.get();
+        double dt = currentTime - lastTimeStamp;
+
+        if (Math.abs(error) < iLimit) {
+            errorSum += error * dt;
+        }
+
+        // 変化率（D成分）の計算
+        double errorRate = dt > 0 ? (error - lastError) / dt : 0;
+
+        // 出力の計算
+        // double outputSpeed = kP * error + kD * errorRate;
+        double outputSpeed = kP * error + kI * errorSum + kD * errorRate;
+        // モーター出力の制限 (-1.0 から 1.0 の範囲内)
+        outputSpeed = Math.max(-1.0, Math.min(outputSpeed, 1.0));
+
+        // モーターを動かす
+        talonSRX.set(ControlMode.PercentOutput, outputSpeed);
+
+        // 前回の値の更新
+        lastError = error;
+        lastTimeStamp = currentTime;
     }
 
     @Override
@@ -138,12 +181,15 @@ public class Robot extends TimedRobot {
         m_timer.reset();
         m_timer.start();
     }
-
-   
+    
     // クラス内のグローバル変数として定義
-    double kP = 3; // Pゲイン
-    double kD = 0.55; // Dゲイン
-    double setpoint = -0.2; // 目標位置
+    double kP = 2.0; // Pゲイン
+    double kD = 0.4; // Dゲイン
+    double kI = 0.1;
+    double iLimit = 0.05;
+
+    double errorSum = 0;
+    double setpoint = -0.05; // 目標位置
     double lastError = 0; // 前回の偏差
     double lastTimeStamp = 0; // 前回のタイムスタンプ
 
@@ -151,8 +197,8 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {
        
         boolean key1 = joystick.getRawButton(1);
-        // boolean key2 = joystick.getRawButton(2);
-        // boolean key3 = joystick.getRawButton(3);
+        boolean key2 = joystick.getRawButton(2);
+        boolean key3 = joystick.getRawButton(3);
         boolean key4 = joystick.getRawButton(4);
         boolean key5 = joystick.getRawButton(5);
         boolean key6 = joystick.getRawButton(6);
@@ -167,8 +213,8 @@ public class Robot extends TimedRobot {
             leftNeoMotor.set(shootSpeed);
         } else if (!(key5) && key6) {
             // collect
-            rightNeoMotor.set(0.5);
-            leftNeoMotor.set(-0.5);
+            rightNeoMotor.set(0.55);
+            leftNeoMotor.set(-0.55);
         } else {
             rightNeoMotor.set(0);
             leftNeoMotor.set(0);
@@ -181,58 +227,63 @@ public class Robot extends TimedRobot {
             myServo.set(0.48);
         }
 
-
         // set the shooter speed
         if (key7) {
-            shootSpeed = 0.4;
+            shootSpeed = 0.35;
         } else if (key8) {
             shootSpeed = 2;
         }
 
         //ArmMotor
         if (key4) {
-            rightArmMotor.set(ControlMode.PercentOutput, 1);
-            leftArmMotor.set(ControlMode.PercentOutput, -1);
+            rightArmMotor.set(ControlMode.PercentOutput, 0.6);
+            leftArmMotor.set(ControlMode.PercentOutput, -0.6);
         } else if (key1) {
-            rightArmMotor.set(ControlMode.PercentOutput, -1);
-            leftArmMotor.set(ControlMode.PercentOutput, 1);
+            rightArmMotor.set(ControlMode.PercentOutput, -0.6);
+            leftArmMotor.set(ControlMode.PercentOutput, 0.6);
         } else {
             rightArmMotor.set(ControlMode.PercentOutput, 0);
             leftArmMotor.set(ControlMode.PercentOutput, 0);
         }
        
         // move driveBase
-        double left = -1 * joystick.getRawAxis(1);          
-        double right = joystick.getRawAxis(5); // ジョイスティックのY軸
+        double left = joystick.getRawAxis(1);          
+        double right = -1 * joystick.getRawAxis(5); // ジョイスティックのY軸
         double rightSpeed = right;
         double leftSpeed = left;
-        leftMotor1.set(limitSpeed(rightSpeed));
-        leftMotor2.set(limitSpeed(rightSpeed));
-        rightMotor1.set(limitSpeed(leftSpeed));
-        rightMotor2.set(limitSpeed(leftSpeed));
-
+        leftMotor1.set(limitSpeed(leftSpeed));
+        leftMotor2.set(limitSpeed(leftSpeed));
+        rightMotor1.set(limitSpeed(rightSpeed));
+        rightMotor2.set(limitSpeed(rightSpeed));
        
         // ボタンによって目標位置を変える
         if (key9) {
-            setpoint = -0.2;  
+            setpoint = -0.38;  
         } else if (key10) {
-            setpoint = -0.35;
+            setpoint = -0.4;
+        } else if (key2) {
+            setpoint = -0.05;
+        } else if (key3) {
+            setpoint = -0.175;
         }
 
         // teleopPeriodic内や任意の周期的に呼び出されるメソッド内
         double sensorPosition = talonSRX.getSelectedSensorPosition() * kDriveTick2Feet; // 現在位置の読み取り
         double error = setpoint - sensorPosition; // 偏差の計算
-
         // 現在の時間を取得し、前回からの経過時間を計算
         double currentTime = m_timer.get();
         double dt = currentTime - lastTimeStamp;
+
+        if (Math.abs(error) < iLimit) {
+            errorSum += error * dt;
+        }
 
         // 変化率（D成分）の計算
         double errorRate = dt > 0 ? (error - lastError) / dt : 0;
 
         // 出力の計算
-        double outputSpeed = kP * error + kD * errorRate;
-
+        // double outputSpeed = kP * error + kD * errorRate;
+        double outputSpeed = kP * error + kI * errorSum + kD * errorRate;
         // モーター出力の制限 (-1.0 から 1.0 の範囲内)
         outputSpeed = Math.max(-1.0, Math.min(outputSpeed, 1.0));
 
@@ -253,16 +304,14 @@ public class Robot extends TimedRobot {
     }
 
     private double limitSpeed(double speed) {
-        return Math.max(-0.2, Math.min(0.2, speed));
+        return Math.max(-0.3, Math.min(0.3, speed));
     }
 
     /** This function is called once each time the robot enters test mode. */
     @Override
     public void testInit() {}
 
-    /** This function is called periodically during test mode. */
     @Override
     public void testPeriodic() {
-       
     }
 }
